@@ -62,7 +62,10 @@ const swaggerOptions = {
       version: "1.0.0",
       description: "API untuk mengambil data komik dari Komiku",
     },
-    servers: [{ url: `http://localhost:${port}` }],
+    servers: [
+      { url: "https://api-komiku-three.vercel.app", description: "Production" },
+      { url: "http://localhost:3001", description: "Local" },
+    ],
   },
   apis: ["./routes/*.js"],
 };
@@ -72,7 +75,14 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
   customCss: ".swagger-ui .topbar { display: none !important; }",
   customSiteTitle: "Komiku REST API",
+  swaggerOptions: { url: "/api-docs/swagger.json" },
 }));
+
+// Expose swagger JSON
+app.get("/api-docs/swagger.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerDocs);
+});
 
 const rekomendasiRoute = require("./routes/rekomendasi");
 const terbaruRoute = require("./routes/terbaru");
