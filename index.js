@@ -71,9 +71,11 @@ const swaggerOptions = {
 };
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
-// Swagger UI — topbar/logo bawaan di-hide
+// Swagger UI — pakai CDN agar asset ter-load di Vercel serverless
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
   customCss: ".swagger-ui .topbar { display: none !important; }",
+  customCssUrl: "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui.min.css",
+  customJs: "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-bundle.js",
   customSiteTitle: "Komiku REST API",
   swaggerOptions: { url: "/api-docs/swagger.json" },
 }));
