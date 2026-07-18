@@ -1,0 +1,1056 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Komiku REST API — Dokumentasi</title>
+  <meta name="description" content="Dokumentasi lengkap Komiku REST API — endpoint, contoh response, dan panduan integrasi." />
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* override: semua endpoint card selalu terbuka */
+    .endpoint-body { display: block !important; }
+    .chevron { display: none; }
+    .endpoint-header { cursor: default !important; }
+    .endpoint-header:hover { background: transparent !important; }
+
+    /* section divider */
+    .ep-group { margin-bottom: 48px; }
+    .ep-group-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--text-faint);
+      padding: 0 0 12px; border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    /* response example always visible */
+    .res-example {
+      margin-top: 14px;
+    }
+    .res-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--text-faint); margin-bottom: 6px;
+    }
+
+    /* try-it default open */
+    .try-response { display: block; }
+    .try-response-body {
+      min-height: 40px;
+      color: var(--text-faint);
+      font-style: italic;
+    }
+
+    /* full-width layout on docs page */
+    .content { max-width: 860px; }
+
+    /* sticky section nav */
+    .docs-subnav {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 16px 40px; border-bottom: 1px solid var(--border);
+      background: var(--bg-sidebar);
+      position: sticky; top: 57px; z-index: 40;
+    }
+    .docs-subnav a {
+      font-size: 12px; color: var(--text-muted); text-decoration: none;
+      padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border);
+      transition: all .15s;
+    }
+    .docs-subnav a:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+    @media(max-width:768px){
+      .docs-subnav { padding: 12px 16px; top: 53px; }
+    }
+  </style>
+</head>
+<body>
+<div class="overlay" id="overlay"></div>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a class="logo-mark" href="/api-docs">
+      <div class="logo-icon">K</div>
+      <div class="logo-text">Komiku API<span>v1.0.0 · REST</span></div>
+    </a>
+  </div>
+  <div class="sidebar-search">
+    <input type="text" id="sidebarSearch" placeholder="Cari endpoint..." autocomplete="off" />
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Panduan</div>
+      <a class="nav-item" data-section="mulai">&#x1F680; Mulai Cepat</a>
+      <a class="nav-item" data-section="integrasi">&#x1F517; Integrasi</a>
+      <a class="nav-item" data-section="rate-limit">&#x23F1; Rate Limit</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Endpoints</div>
+      <a class="nav-item" data-section="ep-rekomendasi"><span class="method-badge">GET</span> Rekomendasi</a>
+      <a class="nav-item" data-section="ep-terbaru"><span class="method-badge">GET</span> Terbaru</a>
+      <a class="nav-item" data-section="ep-populer"><span class="method-badge">GET</span> Komik Populer</a>
+      <a class="nav-item" data-section="ep-pustaka"><span class="method-badge">GET</span> Pustaka</a>
+      <a class="nav-item" data-section="ep-berwarna"><span class="method-badge">GET</span> Berwarna</a>
+      <a class="nav-item" data-section="ep-search"><span class="method-badge">GET</span> Search</a>
+      <a class="nav-item" data-section="ep-detail"><span class="method-badge">GET</span> Detail Komik</a>
+      <a class="nav-item" data-section="ep-chapter"><span class="method-badge">GET</span> Baca Chapter</a>
+      <a class="nav-item" data-section="ep-genre-all"><span class="method-badge">GET</span> Genre List</a>
+      <a class="nav-item" data-section="ep-genre-detail"><span class="method-badge">GET</span> Genre Detail</a>
+      <a class="nav-item" data-section="ep-genre-rekomen"><span class="method-badge">GET</span> Genre Rekomendasi</a>
+      <a class="nav-item" data-section="ep-image-proxy"><span class="method-badge">GET</span> Image Proxy</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="/api-docs" target="_blank">Swagger UI</a>
+    <a href="https://github.com/vern-sg/komiku-rest-api" target="_blank">GitHub</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="base-url-box">
+        <span class="dot"></span>
+        __BASE_URL__
+        <button id="copyBaseUrl" class="copy-btn" style="position:static;border:none;background:transparent;padding:0 0 0 4px;font-size:11px;">Copy</button>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <a href="/api-docs" class="btn btn-ghost">Swagger UI</a>
+      <a href="https://github.com/vern-sg/komiku-rest-api" target="_blank" class="btn btn-ghost">GitHub</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">&#x26A1; Live · REST API v1.0.0</div>
+    <h1>Komiku REST API</h1>
+    <p>Dokumentasi lengkap semua endpoint — contoh response, parameter, cara integrasi ke web/app kamu langsung ada di sini. Tidak perlu auth, tinggal fetch.</p>
+    <div class="hero-actions">
+      <a href="#mulai" class="btn btn-primary">Mulai Cepat</a>
+      <a href="#integrasi" class="btn btn-ghost">Panduan Integrasi</a>
+      <a href="/api-docs" class="btn btn-ghost">Swagger UI</a>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><span class="stat-value">17</span><span class="stat-label">Endpoints</span></div>
+      <div class="stat"><span class="stat-value">200</span><span class="stat-label">Req / 15 menit</span></div>
+      <div class="stat"><span class="stat-value">0</span><span class="stat-label">Auth Dibutuhkan</span></div>
+      <div class="stat"><span class="stat-value">CORS</span><span class="stat-label">Enabled</span></div>
+    </div>
+  </section>
+
+  <!-- SUBNAV -->
+  <nav class="docs-subnav">
+    <a href="#mulai">Mulai Cepat</a>
+    <a href="#integrasi">Integrasi</a>
+    <a href="#rate-limit">Rate Limit</a>
+    <a href="#ep-rekomendasi">Rekomendasi</a>
+    <a href="#ep-terbaru">Terbaru</a>
+    <a href="#ep-populer">Populer</a>
+    <a href="#ep-pustaka">Pustaka</a>
+    <a href="#ep-berwarna">Berwarna</a>
+    <a href="#ep-search">Search</a>
+    <a href="#ep-detail">Detail</a>
+    <a href="#ep-chapter">Chapter</a>
+    <a href="#ep-genre-all">Genre List</a>
+    <a href="#ep-genre-detail">Genre Detail</a>
+    <a href="#ep-image-proxy">Image Proxy</a>
+  </nav>
+
+  <div class="content">
+
+    <!-- ===================== MULAI CEPAT ===================== -->
+    <section class="section" id="mulai">
+      <div class="section-header">
+        <div class="section-icon">&#x1F680;</div>
+        <div><h2>Mulai Cepat</h2><p>Tidak perlu daftar, tidak perlu API key.</p></div>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-icon">&#x26A1;</div>
+          <h3>No Auth</h3>
+          <p>Semua endpoint public. Langsung fetch tanpa token.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">&#x1F4E6;</div>
+          <h3>JSON Response</h3>
+          <p>Semua endpoint return JSON terstruktur, mudah di-parse.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">&#x1F30D;</div>
+          <h3>CORS Enabled</h3>
+          <p>Bisa di-fetch langsung dari browser, React, Vue, Next.js, dsb.</p>
+        </div>
+        <div class="info-card">
+          <div class="info-card-icon">&#x1F5BC;</div>
+          <h3>Image Proxy</h3>
+          <p>Gunakan <code>/image-proxy?url=...</code> untuk bypass hotlink CDN.</p>
+        </div>
+      </div>
+
+      <p style="color:var(--text-muted);font-size:14px;margin:24px 0 10px;">Base URL</p>
+      <div class="code-block">
+        <pre id="baseUrlCode">__BASE_URL__</pre>
+        <button class="copy-btn" data-copy="baseUrlCode">Copy</button>
+      </div>
+
+      <p style="color:var(--text-muted);font-size:14px;margin:20px 0 10px;">Contoh dengan curl</p>
+      <div class="code-block">
+        <pre id="curlEx">curl __BASE_URL__/terbaru
+curl __BASE_URL__/rekomendasi
+curl __BASE_URL__/detail-komik/bocchi-the-rock
+curl "__BASE_URL__/search?q=naruto"
+curl __BASE_URL__/baca-chapter/bocchi-the-rock/82</pre>
+        <button class="copy-btn" data-copy="curlEx">Copy</button>
+      </div>
+    </section>
+
+    <!-- ===================== INTEGRASI ===================== -->
+    <section class="section" id="integrasi">
+      <div class="section-header">
+        <div class="section-icon">&#x1F517;</div>
+        <div><h2>Panduan Integrasi</h2><p>Copy-paste snippet untuk stack favoritmu.</p></div>
+      </div>
+
+      <div class="tab-container">
+        <div class="tabs">
+          <div class="tab active" data-panel="js">JavaScript</div>
+          <div class="tab" data-panel="ts">TypeScript</div>
+          <div class="tab" data-panel="react">React</div>
+          <div class="tab" data-panel="py">Python</div>
+          <div class="tab" data-panel="php">PHP</div>
+          <div class="tab" data-panel="embed">Embed iframe</div>
+        </div>
+
+        <div class="tab-panel active" data-panel-id="js">
+          <div class="code-block"><pre id="sJs">const BASE = '__BASE_URL__';
+
+// Komik terbaru
+const terbaru = await fetch(`${BASE}/terbaru`).then(r => r.json());
+
+// Cari manga
+const hasil = await fetch(`${BASE}/search?q=naruto`).then(r => r.json());
+console.log(hasil.data); // array manga
+
+// Detail komik
+const detail = await fetch(`${BASE}/detail-komik/bocchi-the-rock`).then(r => r.json());
+console.log(detail.title, detail.genres, detail.chapterList);
+
+// Baca chapter
+const chapter = await fetch(`${BASE}/baca-chapter/bocchi-the-rock/82`).then(r => r.json());
+chapter.images.forEach(img => console.log(img.src));</pre>
+            <button class="copy-btn" data-copy="sJs">Copy</button></div>
+        </div>
+
+        <div class="tab-panel" data-panel-id="ts">
+          <div class="code-block"><pre id="sTs">const BASE = '__BASE_URL__';
+
+interface Manga {
+  title: string; slug: string;
+  thumbnail: string; originalLink: string; apiDetailLink: string;
+}
+interface SearchResult {
+  status: boolean; keyword: string; total: number; data: Manga[];
+}
+
+async function cariManga(q: string): Promise&lt;SearchResult&gt; {
+  const res = await fetch(`${BASE}/search?q=${encodeURIComponent(q)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function getDetail(slug: string) {
+  const res = await fetch(`${BASE}/detail-komik/${slug}`);
+  return res.json();
+}
+
+async function getChapter(slug: string, chapter: string) {
+  const res = await fetch(`${BASE}/baca-chapter/${slug}/${chapter}`);
+  return res.json();
+}</pre>
+            <button class="copy-btn" data-copy="sTs">Copy</button></div>
+        </div>
+
+        <div class="tab-panel" data-panel-id="react">
+          <div class="code-block"><pre id="sReact">import { useEffect, useState } from 'react';
+
+const BASE = '__BASE_URL__';
+
+// Hook: ambil komik terbaru
+export function useTerbaru() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch(`${BASE}/terbaru`)
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); });
+  }, []);
+  return { data, loading };
+}
+
+// Hook: cari manga
+export function useSearch(query) {
+  const [result, setResult] = useState(null);
+  useEffect(() => {
+    if (!query) return;
+    fetch(`${BASE}/search?q=${encodeURIComponent(query)}`)
+      .then(r => r.json())
+      .then(setResult);
+  }, [query]);
+  return result;
+}
+
+// Komponen contoh
+export default function MangaList() {
+  const { data, loading } = useTerbaru();
+  if (loading) return &lt;p&gt;Loading...&lt;/p&gt;;
+  return (
+    &lt;ul&gt;
+      {data.map(m => (
+        &lt;li key={m.slug}&gt;
+          &lt;img src={`${BASE}/image-proxy?url=${encodeURIComponent(m.thumbnail)}`} alt={m.title} /&gt;
+          &lt;span&gt;{m.title}&lt;/span&gt;
+        &lt;/li&gt;
+      ))}
+    &lt;/ul&gt;
+  );
+}</pre>
+            <button class="copy-btn" data-copy="sReact">Copy</button></div>
+        </div>
+
+        <div class="tab-panel" data-panel-id="py">
+          <div class="code-block"><pre id="sPy">import requests
+
+BASE = '__BASE_URL__'
+
+# Komik terbaru
+terbaru = requests.get(f'{BASE}/terbaru').json()
+
+# Cari manga
+hasil = requests.get(f'{BASE}/search', params={'q': 'naruto'}).json()
+for manga in hasil['data']:
+    print(manga['title'], manga['slug'])
+
+# Detail komik
+detail = requests.get(f'{BASE}/detail-komik/bocchi-the-rock').json()
+print(detail['title'], detail['genres'])
+
+# Baca chapter
+chapter = requests.get(f'{BASE}/baca-chapter/bocchi-the-rock/82').json()
+for img in chapter['images']:
+    print(img['src'])</pre>
+            <button class="copy-btn" data-copy="sPy">Copy</button></div>
+        </div>
+
+        <div class="tab-panel" data-panel-id="php">
+          <div class="code-block"><pre id="sPhp">&lt;?php
+$base = '__BASE_URL__';
+
+// Komik terbaru
+$terbaru = json_decode(file_get_contents("$base/terbaru"), true);
+
+// Cari manga
+$q = urlencode('naruto');
+$hasil = json_decode(file_get_contents("$base/search?q=$q"), true);
+foreach ($hasil['data'] as $manga) {
+    echo $manga['title'] . PHP_EOL;
+}
+
+// Detail komik
+$detail = json_decode(file_get_contents("$base/detail-komik/bocchi-the-rock"), true);
+echo $detail['title'];
+?&gt;</pre>
+            <button class="copy-btn" data-copy="sPhp">Copy</button></div>
+        </div>
+
+        <div class="tab-panel" data-panel-id="embed">
+          <div class="alert alert-info">
+            <span class="alert-icon">&#x1F4A1;</span>
+            <span>Embed halaman docs ini sebagai iframe di web manapun. CORS sudah aktif, bisa diakses dari domain apapun.</span>
+          </div>
+          <div class="code-block"><pre id="sEmbed">&lt;!-- Embed halaman docs ini --&gt;
+&lt;iframe
+  src="__BASE_URL__/docs"
+  width="100%"
+  height="900"
+  style="border:none;border-radius:12px;"
+  title="Komiku API Docs"
+&gt;&lt;/iframe&gt;
+
+&lt;!-- Atau fetch langsung dari JS di web lain --&gt;
+&lt;script&gt;
+  fetch('__BASE_URL__/terbaru')
+    .then(r =&gt; r.json())
+    .then(data =&gt; console.log(data));
+&lt;/script&gt;</pre>
+            <button class="copy-btn" data-copy="sEmbed">Copy</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== RATE LIMIT ===================== -->
+    <section class="section" id="rate-limit">
+      <div class="section-header">
+        <div class="section-icon">&#x23F1;</div>
+        <div><h2>Rate Limit</h2><p>Fair-use limit agar layanan stabil untuk semua.</p></div>
+      </div>
+      <div class="alert alert-warning">
+        <span class="alert-icon">&#x26A0;</span>
+        <span><strong>200 request per 15 menit</strong> per IP. Melebihi limit → HTTP <code>429</code>. Header <code>RateLimit-Limit</code> dan <code>RateLimit-Remaining</code> disertakan di setiap response.</span>
+      </div>
+      <div class="code-block">
+        <pre id="rl429">HTTP/1.1 429 Too Many Requests
+RateLimit-Limit: 200
+RateLimit-Remaining: 0
+RateLimit-Reset: 900
+
+{
+  "error": "Terlalu banyak request dari IP ini, silakan coba lagi setelah 15 menit"
+}</pre>
+        <button class="copy-btn" data-copy="rl429">Copy</button>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+    <div style="margin-bottom:28px;">
+      <h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px;">Semua Endpoint</h2>
+      <p style="color:var(--text-muted);font-size:14px;">Isi parameter lalu klik <strong>Run</strong> untuk test langsung.</p>
+    </div>
+
+    <!-- ===================== EP: REKOMENDASI ===================== -->
+    <section class="section ep-group" id="ep-rekomendasi">
+      <div class="ep-group-title">Rekomendasi</div>
+      <div class="endpoint-card open" id="card-rekomendasi">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/rekomendasi</span>
+          <span class="endpoint-summary">Daftar manga rekomendasi</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan daftar manga rekomendasi beserta judul, thumbnail, dan link API detail.</p>
+
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-rekomendasi')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+
+          <div class="res-example">
+            <div class="res-label">Contoh Response — 200 OK</div>
+            <div class="code-block"><pre>[
+  {
+    "title": "Kimetsu no Yaiba",
+    "originalLink": "https://komiku.org/manga/kimetsu-no-yaiba-indonesia/",
+    "apiDetailLink": "/detail-komik/kimetsu-no-yaiba-indonesia",
+    "thumbnail": "https://thumbnail.komiku.org/uploads/manga/kimetsu-no-yaiba-indonesia/..."
+  },
+  {
+    "title": "One Piece",
+    "originalLink": "https://komiku.org/manga/one-piece-bahasa-indonesia/",
+    "apiDetailLink": "/detail-komik/one-piece-bahasa-indonesia",
+    "thumbnail": "https://thumbnail.komiku.org/..."
+  }
+]</pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: TERBARU ===================== -->
+    <section class="section ep-group" id="ep-terbaru">
+      <div class="ep-group-title">Terbaru</div>
+      <div class="endpoint-card open" id="card-terbaru">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/terbaru</span>
+          <span class="endpoint-summary">Update manga terbaru</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan manga yang baru saja diupdate, lintas semua tipe (manga, manhwa, manhua).</p>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-terbaru')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+          <div class="res-example">
+            <div class="res-label">Contoh Response — 200 OK</div>
+            <div class="code-block"><pre>[
+  {
+    "title": "Bocchi the Rock!",
+    "slug": "bocchi-the-rock",
+    "thumbnail": "https://thumbnail.komiku.org/...",
+    "latestChapter": "Chapter 82",
+    "latestChapterLink": "/baca-chapter/bocchi-the-rock/82",
+    "type": "Manga",
+    "updatedAt": "2 jam lalu"
+  }
+]</pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: POPULER ===================== -->
+    <section class="section ep-group" id="ep-populer">
+      <div class="ep-group-title">Komik Populer</div>
+      <div class="endpoint-card open" id="card-populer">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/komik-populer &nbsp;<span style="color:var(--text-faint);font-size:12px;">/manga &nbsp;/manhwa &nbsp;/manhua</span></span>
+          <span class="endpoint-summary">Filter by type</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan komik populer. Filter opsional: <code>/komik-populer/manga</code>, <code>/komik-populer/manhwa</code>, atau <code>/komik-populer/manhua</code>.</p>
+          <div class="params-title">Path Parameter (opsional)</div>
+          <table class="params-table">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Nilai</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">type</span></td>
+                <td><span class="param-type">string</span></td>
+                <td style="color:var(--text-muted)"><code>manga</code> / <code>manhwa</code> / <code>manhua</code> — kosongkan untuk semua</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-it-form">
+              <div class="try-input-group">
+                <label>type (opsional)</label>
+                <input type="text" data-key="type" data-type="path-optional" placeholder="manga / manhwa / manhua" />
+              </div>
+            </div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-populer')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+          <div class="res-example">
+            <div class="res-label">Contoh Response — 200 OK</div>
+            <div class="code-block"><pre>[
+  {
+    "title": "Naruto",
+    "slug": "naruto",
+    "thumbnail": "https://thumbnail.komiku.org/...",
+    "type": "Manga",
+    "views": "10.5M",
+    "genres": "Action, Adventure, Fantasy",
+    "apiDetailLink": "/detail-komik/naruto"
+  }
+]</pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: PUSTAKA ===================== -->
+    <section class="section ep-group" id="ep-pustaka">
+      <div class="ep-group-title">Pustaka</div>
+      <div class="endpoint-card open" id="card-pustaka">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/pustaka &nbsp;<span style="color:var(--text-faint);font-size:12px;">/page/:page</span></span>
+          <span class="endpoint-summary">Library komik + pagination</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan library komik lengkap. Pagination via <code>/pustaka/page/2</code>.</p>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-pustaka')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+          <div class="res-example">
+            <div class="res-label">Contoh Response — 200 OK</div>
+            <div class="code-block"><pre>{
+  "page": 1,
+  "data": [
+    {
+      "title": "Attack on Titan",
+      "slug": "shingeki-no-kyojin",
+      "thumbnail": "https://thumbnail.komiku.org/...",
+      "type": "Manga",
+      "genres": "Action, Drama",
+      "status": "Tamat",
+      "apiDetailLink": "/detail-komik/shingeki-no-kyojin"
+    }
+  ]
+}</pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: BERWARNA ===================== -->
+    <section class="section ep-group" id="ep-berwarna">
+      <div class="ep-group-title">Berwarna</div>
+      <div class="endpoint-card open" id="card-berwarna">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/berwarna &nbsp;<span style="color:var(--text-faint);font-size:12px;">/page/:page</span></span>
+          <span class="endpoint-summary">Komik full-color</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan daftar komik berwarna (full-color). Pagination via <code>/berwarna/page/2</code>.</p>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-berwarna')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: SEARCH ===================== -->
+    <section class="section ep-group" id="ep-search">
+      <div class="ep-group-title">Search</div>
+      <div class="endpoint-card open" id="card-search">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/search<span class="param">?q=keyword</span></span>
+          <span class="endpoint-summary">Cari manga by keyword</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Cari manga, manhwa, atau manhua berdasarkan judul atau kata kunci.</p>
+          <div class="params-title">Query Parameter</div>
+          <table class="params-table">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">q</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="required-badge">required</span></td>
+                <td style="color:var(--text-muted)">Kata kunci pencarian</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-it-form">
+              <div class="try-input-group">
+                <label>q <span style="color:var(--red)">*</span></label>
+                <input type="text" data-key="q" data-type="query" placeholder="naruto" />
+              </div>
+            </div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-search')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+          <div class="res-example">
+            <div class="res-label">Contoh Response — 200 OK</div>
+            <div class="code-block"><pre>{
+  "status": true,
+  "message": "Berhasil mendapatkan hasil pencarian",
+  "keyword": "naruto",
+  "total": 3,
+  "data": [
+    {
+      "title": "Naruto",
+      "altTitle": null,
+      "slug": "naruto",
+      "thumbnail": "https://thumbnail.komiku.org/...",
+      "type": "Manga",
+      "genres": "Action, Adventure, Fantasy",
+      "synopsis": "Naruto Uzumaki adalah ninja muda...",
+      "views": "10.5M",
+      "originalLink": "https://komiku.org/manga/naruto/",
+      "apiDetailLink": "/detail-komik/naruto"
+    }
+  ]
+}</pre></div>
+          </div>
+          <div class="res-example" style="margin-top:10px;">
+            <div class="res-label">Response — 404 Tidak Ditemukan</div>
+            <div class="code-block"><pre>{
+  "status": false,
+  "message": "Tidak ada hasil yang ditemukan",
+  "keyword": "xyzxyzxyz",
+  "total": 0,
+  "data": []
+}</pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: DETAIL ===================== -->
+    <section class="section ep-group" id="ep-detail">
+      <div class="ep-group-title">Detail Komik</div>
+      <div class="endpoint-card open" id="card-detail">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/detail-komik/<span class="param">:slug</span></span>
+          <span class="endpoint-summary">Detail lengkap sebuah komik</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan detail lengkap komik: judul, sinopsis, genre, list chapter, komik serupa, dan lainnya.</p>
+          <div class="params-title">Path Parameter</div>
+          <table class="params-table">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Wajib</th><th>Contoh</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">slug</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="required-badge">required</span></td>
+                <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:12px;">bocchi-the-rock</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-it-form">
+              <div class="try-input-group">
+                <label>slug <span style="color:var(--red)">*</span></label>
+                <input type="text" data-key="slug" data-type="path" placeholder="bocchi-the-rock" />
+              </div>
+            </div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-detail')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+          <div class="res-example">
+            <div class="res-label">Contoh Response — 200 OK</div>
+            <div class="code-block"><pre>{
+  "title": "Komik Bocchi the Rock!",
+  "alternativeTitle": "Bocchi Si Penyendiri Musik",
+  "description": "Komik Bocchi the Rock! Chapter ...",
+  "sinopsis": "Hitori Gotoh, alias 'Bocchi-chan', adalah gadis pemalu...",
+  "thumbnail": "https://thumbnail.komiku.org/...",
+  "info": {
+    "Judul Komik": "Bocchi the Rock!",
+    "Jenis Komik": "Manga",
+    "Pengarang": "Hamaji Aki",
+    "Status": "Tamat",
+    "Cara Baca": "Kanan ke Kiri"
+  },
+  "genres": ["Comedy", "Music", "School", "Slice of Life"],
+  "slug": "bocchi-the-rock",
+  "firstChapter": {
+    "title": "Chapter 1",
+    "originalLink": "https://komiku.org/...",
+    "apiLink": "/baca-chapter/bocchi-the-rock/1",
+    "chapterNumber": "1"
+  },
+  "lastChapter": {
+    "title": "Chapter 82",
+    "apiLink": "/baca-chapter/bocchi-the-rock/82",
+    "chapterNumber": "82"
+  },
+  "chapterList": [
+    { "title": "Chapter 82", "apiLink": "/baca-chapter/bocchi-the-rock/82", "date": "01 Des 2024" },
+    { "title": "Chapter 81", "apiLink": "/baca-chapter/bocchi-the-rock/81", "date": "01 Nov 2024" }
+  ],
+  "similarKomik": [
+    {
+      "title": "Kono Bijutsubu ni wa Mondai ga Aru!",
+      "slug": "kono-bijutsubu-ni-wa-mondai-ga-aru",
+      "thumbnail": "https://...",
+      "type": "Manga",
+      "genres": "Comedy, Romance",
+      "apiLink": "/detail-komik/kono-bijutsubu-ni-wa-mondai-ga-aru"
+    }
+  ]
+}</pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: CHAPTER ===================== -->
+    <section class="section ep-group" id="ep-chapter">
+      <div class="ep-group-title">Baca Chapter</div>
+      <div class="endpoint-card open" id="card-chapter">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/baca-chapter/<span class="param">:slug</span>/<span class="param">:chapter</span></span>
+          <span class="endpoint-summary">Gambar halaman chapter</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan semua gambar halaman, metadata, dan navigasi prev/next untuk satu chapter.</p>
+          <div class="params-title">Path Parameters</div>
+          <table class="params-table">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Wajib</th><th>Contoh</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">slug</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="required-badge">required</span></td>
+                <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:12px;">bocchi-the-rock</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">chapter</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="required-badge">required</span></td>
+                <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:12px;">82</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-it-form">
+              <div class="try-input-group">
+                <label>slug <span style="color:var(--red)">*</span></label>
+                <input type="text" data-key="slug" data-type="path" placeholder="bocchi-the-rock" />
+              </div>
+              <div class="try-input-group">
+                <label>chapter <span style="color:var(--red)">*</span></label>
+                <input type="text" data-key="chapter" data-type="path" placeholder="82" />
+              </div>
+            </div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-chapter')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+          <div class="res-example">
+            <div class="res-label">Contoh Response — 200 OK</div>
+            <div class="code-block"><pre>{
+  "title": "Bocchi the Rock! Chapter 82",
+  "mangaInfo": {
+    "title": "Bocchi the Rock!",
+    "originalLink": "https://komiku.org/manga/bocchi-the-rock/",
+    "apiLink": "/detail-komik/bocchi-the-rock",
+    "slug": "bocchi-the-rock"
+  },
+  "description": "Baca Bocchi the Rock! Chapter 82...",
+  "images": [
+    {
+      "src": "https://img.komiku.org/wp-content/uploads/...",
+      "alt": "Bocchi the Rock! Chapter 82 - Page 1",
+      "id": "image-1",
+      "fallbackSrc": "https://img2.komiku.org/..."
+    }
+  ],
+  "meta": {
+    "chapterNumber": "82",
+    "totalImages": 18,
+    "publishDate": "01 Des 2024",
+    "slug": "bocchi-the-rock"
+  },
+  "navigation": {
+    "prevChapter": { "title": "Chapter 81", "apiLink": "/baca-chapter/bocchi-the-rock/81" },
+    "nextChapter": null,
+    "allChapters": "/detail-komik/bocchi-the-rock"
+  }
+}</pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: GENRE ALL ===================== -->
+    <section class="section ep-group" id="ep-genre-all">
+      <div class="ep-group-title">Genre List</div>
+      <div class="endpoint-card open" id="card-genre-all">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/genre-all</span>
+          <span class="endpoint-summary">Semua tag genre</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan daftar lengkap semua genre yang tersedia beserta slug dan link.</p>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-genre-all')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+          <div class="res-example">
+            <div class="res-label">Contoh Response — 200 OK</div>
+            <div class="code-block"><pre>[
+  { "name": "Action",   "slug": "action",   "link": "https://komiku.org/genre/action/",   "apiLink": "/genre/action" },
+  { "name": "Comedy",   "slug": "comedy",   "link": "https://komiku.org/genre/comedy/",   "apiLink": "/genre/comedy" },
+  { "name": "Romance",  "slug": "romance",  "link": "https://komiku.org/genre/romance/",  "apiLink": "/genre/romance" },
+  { "name": "Fantasy",  "slug": "fantasy",  "link": "https://komiku.org/genre/fantasy/",  "apiLink": "/genre/fantasy" }
+]</pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: GENRE DETAIL ===================== -->
+    <section class="section ep-group" id="ep-genre-detail">
+      <div class="ep-group-title">Genre Detail</div>
+      <div class="endpoint-card open" id="card-genre-detail">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/genre/<span class="param">:slug</span> <span style="color:var(--text-faint);font-size:12px;">/page/:page</span></span>
+          <span class="endpoint-summary">Komik berdasarkan genre</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan komik dari genre tertentu. Pagination via <code>/genre/:slug/page/2</code>.</p>
+          <div class="params-title">Path Parameters</div>
+          <table class="params-table">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Wajib</th><th>Contoh</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">slug</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="required-badge">required</span></td>
+                <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:12px;">action</td>
+              </tr>
+              <tr>
+                <td><span class="param-name">page</span></td>
+                <td><span class="param-type">number</span></td>
+                <td></td>
+                <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:12px;">1</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-it-form">
+              <div class="try-input-group">
+                <label>slug <span style="color:var(--red)">*</span></label>
+                <input type="text" data-key="slug" data-type="path" placeholder="action" />
+              </div>
+            </div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-genre-detail')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: GENRE REKOMENDASI ===================== -->
+    <section class="section ep-group" id="ep-genre-rekomen">
+      <div class="ep-group-title">Genre Rekomendasi</div>
+      <div class="endpoint-card open" id="card-genre-rekomen">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/genre-rekomendasi</span>
+          <span class="endpoint-summary">Genre rekomendasi + sampel komik</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mengembalikan genre rekomendasi beserta sampel komik untuk browsing dan discovery.</p>
+          <div class="try-it">
+            <div class="try-it-header"><span>Try It</span></div>
+            <div class="try-actions">
+              <button class="btn-run" onclick="runEndpoint('card-genre-rekomen')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Run
+              </button>
+            </div>
+            <div class="try-response">
+              <div class="try-response-header"><span class="status-pill"></span><span class="response-time"></span></div>
+              <div class="try-response-body"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== EP: IMAGE PROXY ===================== -->
+    <section class="section ep-group" id="ep-image-proxy">
+      <div class="ep-group-title">Image Proxy</div>
+      <div class="endpoint-card open" id="card-image-proxy">
+        <div class="endpoint-header">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/image-proxy<span class="param">?url=...</span></span>
+          <span class="endpoint-summary">Proxy gambar cover / chapter</span>
+        </div>
+        <div class="endpoint-body">
+          <p class="endpoint-desc">Mem-proxy gambar cover dan chapter melalui server untuk bypass hotlink protection CDN sumber. Return binary gambar dengan <code>Content-Type</code> dan cache 24 jam.</p>
+          <div class="params-title">Query Parameter</div>
+          <table class="params-table">
+            <thead><tr><th>Nama</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="param-name">url</span></td>
+                <td><span class="param-type">string</span></td>
+                <td><span class="required-badge">required</span></td>
+                <td style="color:var(--text-muted)">URL lengkap gambar yang akan di-proxy (dari CDN komiku)</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="res-example">
+            <div class="res-label">Contoh Penggunaan</div>
+            <div class="code-block"><pre id="imgProxyEx">&lt;!-- Di HTML --&gt;
+&lt;img src="__BASE_URL__/image-proxy?url=https://thumbnail.komiku.org/uploads/manga/bocchi-the-rock/cover.jpg" /&gt;
+
+// Di JavaScript
+const imgSrc = `${BASE}/image-proxy?url=${encodeURIComponent(manga.thumbnail)}`;</pre>
+              <button class="copy-btn" data-copy="imgProxyEx">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div style="height:80px;"></div>
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script src="app.js"></script>
+</body>
+</html>
+

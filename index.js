@@ -21,8 +21,10 @@ const port = process.env.PORT || 3001;
 const rateLimiter = require("./middleware/rateLimiter");
 
 app.use(rateLimiter);
+// Serve static frontend assets (CSS, JS) — index:false so index.html is NOT auto-served at /
 app.use(
   express.static(path.join(__dirname, "frontend"), {
+    index: false,
     etag: true,
     maxAge: "1y",
     immutable: true,
@@ -49,6 +51,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Root → redirect ke /docs
+app.get("/", (req, res) => res.redirect("/docs"));
+
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: "3.0.0",
@@ -57,17 +62,17 @@ const swaggerOptions = {
       version: "1.0.0",
       description: "API untuk mengambil data komik dari Komiku",
     },
-    servers: [
-      {
-        url: `http://localhost:${port}`,
-      },
-    ],
+    servers: [{ url: `http://localhost:${port}` }],
   },
   apis: ["./routes/*.js"],
 };
-
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// Swagger UI — topbar/logo bawaan di-hide
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
+  customCss: ".swagger-ui .topbar { display: none !important; }",
+  customSiteTitle: "Komiku REST API",
+}));
 
 const rekomendasiRoute = require("./routes/rekomendasi");
 const terbaruRoute = require("./routes/terbaru");
@@ -81,8 +86,8 @@ const genreAll = require("./routes/genre-all");
 const genreDetail = require("./routes/genre-detail");
 const genreRekomendasi = require("./routes/genre-rekomendasi");
 
-// Root route
-app.get("/", (req, res) => {
+// Docs page
+app.get("/docs", (req, res) => {
   res.setHeader("Cache-Control", "no-cache");
   res.sendFile(path.join(__dirname, "frontend", "index.html"));
 });
